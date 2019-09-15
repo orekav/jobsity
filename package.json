@@ -1,0 +1,57 @@
+{
+	"name": "jobsity",
+	"version": "1.0.0",
+	"description": "",
+	"main": "app.ts",
+	"watch": {
+		"test": "{src,test}/*.js"
+	},
+	"scripts": {
+		"start": "npm run serve",
+		"serve": "node dist/app.js",
+		"build": "npm run build-ts && npm run tslint",
+		"build-ts": "tsc",
+		"tslint": "tslint -c tslint.json -p tsconfig.json",
+		"test": "echo 'jest --forceExit --coverage --verbose --detectOpenHandles'",
+		"watch": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run watch-node\"",
+		"watch-node": "nodemon dist/app.js",
+		"watch-ts": "tsc -w",
+		"watch-public": "npm-watch",
+		"debug": "npm run build && npm run watch-debug",
+		"serve-debug": "nodemon --inspect dist/app.js",
+		"watch-debug": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run serve-debug\" \"npm run watch-public\""
+	},
+	"dependencies": {
+		"dotenv": "^8.1.0",
+		"serve-handler": "^6.1.1",
+		"socket.io": "^2.2.0",
+		"socket.io-redis": "^5.2.0",
+		"socketio-jwt": "^4.5.0",
+		"uuid": "^3.3.3",
+		"winston": "^2.4.4"
+	},
+	"devDependencies": {
+		"@types/dotenv": "^6.1.1",
+		"@types/express": "^4.17.1",
+		"@types/jest": "^24.0.18",
+		"@types/node": "^12.7.5",
+		"@types/serve-handler": "^6.1.0",
+		"@types/socket.io": "^2.1.2",
+		"@types/socket.io-redis": "^1.0.25",
+		"@types/socketio-jwt": "0.0.0",
+		"@types/supertest": "^2.0.8",
+		"@types/uuid": "^3.4.5",
+		"concurrently": "^4.1.2",
+		"jest": "^24.9.0",
+		"nodemon": "^1.19.2",
+		"npm-watch": "^0.6.0",
+		"supertest": "^4.0.2",
+		"ts-jest": "^24.1.0",
+		"ts-node": "^8.3.0",
+		"tslint": "^5.20.0",
+		"typescript": "^3.6.3"
+	},
+	"keywords": [],
+	"author": "Nicolas Alejandro Vaquero",
+	"license": "ISC"
+}
