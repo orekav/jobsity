@@ -12,5 +12,3 @@ COPY . $workdir
 
 RUN npm run build
 # RUN npm prune --production
-
-USER 1001
