@@ -2,8 +2,9 @@ const request = require("request");
 const io = require("socket.io-client");
 
 const url = `${process.env.SERVER_PROTOCOL}://${process.env.SERVER_URL}:${process.env.SERVER_PORT}`;
-const socket = io(url);
-socket.on("connect", () => {});
+const socket = io(url, { secure: process.env.SERVER_PROTOCOL == "https", reconnect: true, rejectUnauthorized: false });
+
+socket.on("connect", () => console.log("Connected"));
 
 socket.on("chatroom created", (chatroomID) => {
     const chatroom = io(`${url}/${chatroomID}`);
@@ -24,7 +25,10 @@ socket.on("chatroom created", (chatroomID) => {
                     );
                 }
             }, []);
-            chatroom.emit("message", { text: `${stocks[0].Symbol} quote is ${stocks[0].Close} per share` });
+            if (Number(stocks[0].Close))
+                chatroom.send(`${stocks[0].Symbol} quote is ${stocks[0].Close} per share`);
+            else
+                chatroom.send(`${stock.toUpperCase()} quote could not be processed or was not found`);
         });
     });
 });
