@@ -1,0 +1,20 @@
+version: "3.0"
+
+services:
+    redis:
+        ports:
+        - "6379:6379"
+
+    bot:
+        environment:
+        - NODE_ENV=production
+        - SERVER_PROTOCOL=http
+        - SERVER_URL=server
+        - SERVER_PORT=8080
+
+    server:
+        environment:
+        - NODE_ENV=production
+        - PORT=8080
+        ports:
+        - "8080:8080"

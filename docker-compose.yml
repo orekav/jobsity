@@ -1,0 +1,18 @@
+version: "3.0"
+
+services:
+    redis:
+        image: redis:5-alpine
+        ports:
+        - "6379:6379"
+
+    bot:
+        build: ./bot
+        command: sh -c "npm start"
+
+    server:
+        build: ./server
+        command: sh -c "npm start"
+        depends_on:
+            - redis
+            - bot
