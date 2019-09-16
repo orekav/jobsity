@@ -50,10 +50,6 @@ export class ChatRoom {
 		client.emit("bot added");
 	}
 
-	public sendMessage(aMessage: Message) {
-		socketIO.of(this.uuid).emit("newMessage", { message: aMessage });
-	}
-
 	public receiveMessage(client: SocketIO.Socket, message: string) {
 		logger.silly(message + " " + this.uuid);
 		if (isACommand.test(message))
@@ -66,7 +62,7 @@ export class ChatRoom {
 		// ToDo: This message should be stored in a database
 		const messageObject: Message = new Message({ text: aMessage, submitter: new User({ name: client.id }) });
 		this.messages.push(messageObject);
-		this.socket.emit("message", messageObject);
+		this.socket.send(messageObject);
 	}
 
 	private requestStockInfo(client: SocketIO.Socket, aStock: string) {
