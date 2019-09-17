@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 import { User } from "./user";
 
-interface MessageProperties {
+export interface MessageProperties {
 	text: string;
 	submitter: User;
 	timestamp?: number;

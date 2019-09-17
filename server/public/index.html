@@ -58,18 +58,23 @@
 		<input id="m" autocomplete="off" /><button>Send</button>
 	</form>
 	<script src="/socket.io/socket.io.js"></script>
-	<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+	<script src="/vendor/jquery-3.4.1.min.js"></script>
 	<script>
 		$(function () {
-			var socket = io();
-			$('form').submit(function (e) {
+			const socket = io();
+			
+			const messageConverter = (aMessage) => `[${(new Date(aMessage.timestamp).toLocaleString())}] - ${aMessage.submitter.name}: ${aMessage.text}`
+			const appendMessage = (aMessage) => $("#messages").append($("<li>").text(messageConverter(aMessage))); 
+			
+			socket.emit("history get")
+			socket.on("history got", (history) => history.forEach(appendMessage));
+			socket.on("message", appendMessage);
+			
+			$("form").submit(function (e) {
 				e.preventDefault(); // prevents page reloading
-				socket.emit('message', $('#m').val());
-				$('#m').val('');
+				socket.emit("message", $("#m").val());
+				$("#m").val("");
 				return false;
-			});
-			socket.on('message', function (msg) {
-				$('#messages').append($('<li>').text(msg));
 			});
 		});
 	</script>

@@ -16,5 +16,7 @@ services:
         environment:
         - NODE_ENV=production
         - PORT=8080
+        - REDIS_URL=redis
+        - REDIS_PORT=6379
         ports:
         - "8080:8080"

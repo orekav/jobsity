@@ -4,8 +4,11 @@ import socketIO from "../app";
 import SocketIO from "socket.io";
 import logger from "../helpers/logger";
 import { User } from "./user";
+import Redis from "redis";
 
+const redis = Redis.createClient({ host: process.env.REDIS_URL, port: Number(process.env.REDIS_PORT) });
 const isACommand: RegExp = /^\/stock=/;
+const chatLimit = 50;
 
 interface ChatRoomProperties {
 	messages?: Message[];
@@ -31,7 +34,7 @@ export class ChatRoom {
 
 	public createSocket() {
 		this.socket = socketIO
-			.of(this.uuid)
+			// .to(this.uuid)
 			.on("connection", (client: SocketIO.Socket) => {
 				// Adds client to the Bot list
 				client.on("bot add", (message) => this.addRobot(client, message));
@@ -39,18 +42,22 @@ export class ChatRoom {
 				// Broadcasts message of stock
 				client.on("message", (message) => this.receiveMessage(client, message));
 
+				// Get History
+				client.on("history get", () => this.getHistory(client));
+
 				// Logs disconnection from Room
 				client.on("disconnect", () => logger.silly(`Client ${client.id} has disconnected from Room ${this.uuid}`));
 			});
 	}
 
-	public addRobot(client: SocketIO.Socket, secret: any) {
+	private addRobot(client: SocketIO.Socket, secret: any) {
 		logger.silly("Bot Add");
 		(secret || true) ? this.bot = (client.id) : undefined;
+		// client.join(this.uuid);
 		client.emit("bot added");
 	}
 
-	public receiveMessage(client: SocketIO.Socket, message: string) {
+	private receiveMessage(client: SocketIO.Socket, message: string) {
 		logger.silly(message + " " + this.uuid);
 		if (isACommand.test(message))
 			this.requestStockInfo(client, message.replace(isACommand, ""));
@@ -61,13 +68,28 @@ export class ChatRoom {
 	private broadcastMessage(client: SocketIO.Socket, aMessage: string) {
 		// ToDo: This message should be stored in a database
 		const messageObject: Message = new Message({ text: aMessage, submitter: new User({ name: client.id }) });
-		this.messages.push(messageObject);
+		redis.rpush("messages", JSON.stringify(messageObject), (err, quantity) => {
+			if (quantity > chatLimit)
+				redis.lpop("messages");
+		});
 		this.socket.send(messageObject);
+	}
+
+	private getHistory(client: SocketIO.Socket) {
+		redis.lrange("messages", 0, chatLimit, (err, messages) => {
+			client.emit(
+				"history got",
+				messages.map(
+					(aMessage: string) => new Message(JSON.parse(aMessage))
+				)
+			);
+		});
 	}
 
 	private requestStockInfo(client: SocketIO.Socket, aStock: string) {
 		logger.silly("Request stock data");
 		// ToDo: Check if there is a bot available
-		client.to(this.bot).emit("stock", aStock);
+		// client.to(this.bot).emit("stock", aStock);
+		client.broadcast.emit("stock", aStock);
 	}
 }

@@ -6,29 +6,26 @@ const socket = io(url, { secure: process.env.SERVER_PROTOCOL == "https", reconne
 
 socket.on("connect", () => console.log("Connected"));
 
-socket.on("chatroom created", (chatroomID) => {
-    const chatroom = io(`${url}/${chatroomID}`);
-    chatroom.emit("bot add", {});
-    chatroom.on("stock", (stock) => {
-        request.get(`https://stooq.com/q/l/?s=${stock}&f=sd2t2ohlcv&h&e=csv`, {}, (error, response) => {
-            const [headersLine, ...dataLines] = response.body.split("\r\n");
-            const properties = headersLine.split(",");
-            const stocks = dataLines.map((aStockString) => {
-                if (aStockString != "") {
-                    const splittedStockString = aStockString.split(",");
-                    return properties.reduce(
-                        (aStock, aProperty, anIndex) => {
-                            aStock[aProperty] = splittedStockString[anIndex];
-                            return aStock;
-                        },
-                        {}
-                    );
-                }
-            }, []);
-            if (Number(stocks[0].Close))
-                chatroom.send(`${stocks[0].Symbol} quote is ${stocks[0].Close} per share`);
-            else
-                chatroom.send(`${stock.toUpperCase()} quote could not be processed or was not found`);
-        });
+socket.emit("bot add");
+socket.on("stock", (stock) => {
+    request.get(`https://stooq.com/q/l/?s=${stock}&f=sd2t2ohlcv&h&e=csv`, {}, (error, response) => {
+        const [headersLine, ...dataLines] = response.body.split("\r\n");
+        const properties = headersLine.split(",");
+        const stocks = dataLines.map((aStockString) => {
+            if (aStockString != "") {
+                const splittedStockString = aStockString.split(",");
+                return properties.reduce(
+                    (aStock, aProperty, anIndex) => {
+                        aStock[aProperty] = splittedStockString[anIndex];
+                        return aStock;
+                    },
+                    {}
+                );
+            }
+        }, []);
+        if (Number(stocks[0].Close))
+            socket.send(`${stocks[0].Symbol} quote is ${stocks[0].Close} per share`);
+        else
+            socket.send(`${stock.toUpperCase()} quote could not be processed or was not found`);
     });
 });
